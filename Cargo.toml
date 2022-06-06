@@ -1,0 +1,11 @@
+[package]
+name = "arcanoid"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+zstring = "0.1.1"
+glitz = {version = "0.4", features=["std"]}
+beryllium = "0.7.6"
