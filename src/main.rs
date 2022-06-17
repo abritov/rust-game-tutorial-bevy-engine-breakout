@@ -132,11 +132,9 @@ fn main() {
             glutin::event::Event::WindowEvent { event, .. } => match event {
                 // Break from the main loop when the window is closed.
                 glutin::event::WindowEvent::CloseRequested => glutin::event_loop::ControlFlow::Exit,
-                // Redraw the triangle when the window is resized.
-                glutin::event::WindowEvent::Resized(..) => {
-                    draw();
-                    glutin::event_loop::ControlFlow::Poll
-                },
+                glutin::event::WindowEvent::KeyboardInput { input, .. } if input.state == glutin::event::ElementState::Pressed => {
+                    glutin::event_loop::ControlFlow::Exit
+                }
                 _ => glutin::event_loop::ControlFlow::Poll,
             },
             _ => glutin::event_loop::ControlFlow::Poll,
