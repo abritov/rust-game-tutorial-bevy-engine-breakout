@@ -192,6 +192,7 @@ checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 name = "bevy"
 version = "0.8.0-dev"
 dependencies = [
+ "bevy_dylib",
  "bevy_internal",
 ]
 
@@ -311,6 +312,13 @@ dependencies = [
  "bevy_log",
  "bevy_time",
  "bevy_utils",
+]
+
+[[package]]
+name = "bevy_dylib"
+version = "0.8.0-dev"
+dependencies = [
+ "bevy_internal",
 ]
 
 [[package]]
