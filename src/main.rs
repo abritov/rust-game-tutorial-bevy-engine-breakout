@@ -148,6 +148,26 @@ impl WallBundle {
     }
 }
 
+fn grab_cursor(
+    mut windows: ResMut<Windows>,
+    btn: Res<Input<MouseButton>>,
+    key: Res<Input<KeyCode>>,
+) {
+    let window = windows
+        .get_primary_mut()
+        .expect("unable to get main window");
+
+    if btn.just_pressed(MouseButton::Left) {
+        window.set_cursor_lock_mode(true);
+        window.set_cursor_visibility(false);
+    }
+
+    if key.just_pressed(KeyCode::Q) {
+        window.set_cursor_lock_mode(false);
+        window.set_cursor_visibility(true);
+    }
+}
+
 fn move_paddle_from_keys(
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Paddle>>,
@@ -436,6 +456,7 @@ fn main() {
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
+                .with_system(grab_cursor)
                 .with_system(check_for_collisions)
                 .with_system(move_paddle_from_keys.before(check_for_collisions))
                 .with_system(move_paddle_from_mouse.before(check_for_collisions))
