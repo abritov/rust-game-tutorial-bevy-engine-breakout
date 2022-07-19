@@ -62,6 +62,9 @@ struct Collider;
 #[derive(Default)]
 struct CollisionEvent;
 
+#[derive(Default)]
+struct BlockCrushEvent;
+
 #[derive(Component)]
 struct Brick;
 
@@ -190,6 +193,7 @@ fn check_for_collisions(
     mut ball_query: Query<(&mut Velocity, &Transform), With<Ball>>,
     collider_query: Query<(Entity, &Transform, Option<&Brick>), With<Collider>>,
     mut collision_events: EventWriter<CollisionEvent>,
+    mut block_crush_event: EventWriter<BlockCrushEvent>,
 ) {
     let (mut ball_velocity, ball_transform) = ball_query.single_mut();
     let ball_size = ball_transform.scale.truncate();
@@ -210,6 +214,7 @@ fn check_for_collisions(
             if maybe_brick.is_some() {
                 scoreboard.score += 1;
                 commands.entity(collider_entity).despawn();
+                block_crush_event.send_default();
             }
 
             // reflect the ball when it collides
@@ -240,7 +245,7 @@ fn check_for_collisions(
 }
 
 fn play_collision_sound(
-    collision_events: EventReader<CollisionEvent>,
+    collision_events: EventReader<BlockCrushEvent>,
     audio: Res<Audio>,
     sound: Res<CollisionSound>,
 ) {
@@ -408,6 +413,7 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_startup_system(setup)
         .add_event::<CollisionEvent>()
+        .add_event::<BlockCrushEvent>()
         .add_system_set(
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
