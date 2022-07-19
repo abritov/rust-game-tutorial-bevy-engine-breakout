@@ -148,8 +148,7 @@ impl WallBundle {
     }
 }
 
-
-fn move_paddle(
+fn move_paddle_from_keys(
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Paddle>>,
 ) {
@@ -173,6 +172,28 @@ fn move_paddle(
     let right_bound = RIGHT_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
 
     paddle_transform.translation.x = new_paddle_position.clamp(left_bound, right_bound);
+}
+
+fn move_paddle_from_mouse(
+    windows: Res<Windows>,
+    mut mouse: EventReader<CursorMoved>,
+    camera_query: Query<(&Camera, &GlobalTransform), With<Camera2d>>,
+    mut paddle_query: Query<&mut Transform, With<Paddle>>,
+) {
+    let window = windows.get_primary().expect("unable to get main window");
+    if let Some(ev) = mouse.iter().last() {
+        let (camera, camera_transform) = camera_query.single();
+        let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+        let ndc = (ev.position / window_size) * 2.0 - Vec2::ONE;
+        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix().inverse();
+        let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+        let world_pos: Vec2 = world_pos.truncate();
+
+        let left_bound = LEFT_WALL + WALL_THICKNESS / 2.0 + PADDLE_SIZE.x / 2.0 + PADDLE_PADDING;
+        let right_bound = RIGHT_WALL - WALL_THICKNESS / 2.0 - PADDLE_SIZE.x / 2.0 - PADDLE_PADDING;
+        let mut paddle_transform = paddle_query.single_mut();
+        paddle_transform.translation.x = world_pos.x.clamp(left_bound, right_bound);
+    }
 }
 
 fn apply_velocity(mut query: Query<(&mut Transform, &Velocity)>) {
@@ -338,8 +359,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-
-
     // Walls
     commands.spawn_bundle(WallBundle::new(WallLocation::Left));
     commands.spawn_bundle(WallBundle::new(WallLocation::Right));
@@ -418,7 +437,8 @@ fn main() {
             SystemSet::new()
                 .with_run_criteria(FixedTimestep::step(TIME_STEP as f64))
                 .with_system(check_for_collisions)
-                .with_system(move_paddle.before(check_for_collisions))
+                .with_system(move_paddle_from_keys.before(check_for_collisions))
+                .with_system(move_paddle_from_mouse.before(check_for_collisions))
                 .with_system(apply_velocity.before(check_for_collisions))
                 .with_system(play_collision_sound.after(check_for_collisions)),
         )
